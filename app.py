@@ -116,7 +116,7 @@ def logout():
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    
+
     flash(f"{g.user.username} has successfully logged out.", "success")
     do_logout()
 
@@ -133,6 +133,7 @@ def list_users():
     Can take a 'q' param in querystring to search by that username.
     """
 
+    current_url = '/users'
     search = request.args.get('q')
 
     if not search:
@@ -140,13 +141,15 @@ def list_users():
     else:
         users = User.query.filter(User.username.like(f"%{search}%")).all()
 
-    return render_template('users/index.html', users=users)
+    return render_template('users/index.html',
+                           users=users, current_url=current_url)
 
 
 @app.route('/users/<int:user_id>')
 def users_show(user_id):
     """Show user profile."""
 
+    current_url = f'/users/{user_id}'
     user = User.query.get_or_404(user_id)
 
     # snagging messages in order from the database;
@@ -157,31 +160,36 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-    return render_template('users/show.html', user=user, messages=messages)
+    return render_template('users/show.html', user=user,
+                           messages=messages, current_url=current_url)
 
 
 @app.route('/users/<int:user_id>/following')
 def show_following(user_id):
     """Show list of people this user is following."""
 
+    current_url = f'/users/{user_id}/following'
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/following.html', user=user)
+    return render_template('users/following.html',
+                           user=user, current_url=current_url)
 
 
 @app.route('/users/<int:user_id>/followers')
 def users_followers(user_id):
     """Show list of followers of this user."""
 
+    current_url = f'/users/{user_id}/followers'
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('users/followers.html', user=user)
+    return render_template('users/followers.html',
+                           user=user, current_url=current_url)
 
 
 @app.route('/users/follow/<int:follow_id>', methods=['POST'])
@@ -192,11 +200,13 @@ def add_follow(follow_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
+    current_url = request.form.get('current_url')
+
     followed_user = User.query.get_or_404(follow_id)
     g.user.following.append(followed_user)
     db.session.commit()
 
-    return redirect(f"/users/{follow_id}")
+    return redirect(current_url)
 
 
 @app.route('/users/stop-following/<int:follow_id>', methods=['POST'])
@@ -207,11 +217,13 @@ def stop_following(follow_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
+    current_url = request.form.get('current_url')
+
     followed_user = User.query.get(follow_id)
     g.user.following.remove(followed_user)
     db.session.commit()
 
-    return redirect(f"/users/{follow_id}")
+    return redirect(current_url)
 
 
 @app.route('/users/profile', methods=["GET", "POST"])
@@ -221,23 +233,68 @@ def profile():
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-
     form = UserEditForm(obj=g.user)
 
     if form.validate_on_submit():
-        g.user.username = form.username.data
-        g.user.email = form.email.data
-        g.user.image_url = form.image_url.data
-        g.user.location = form.location.data
-        g.user.bio = form.bio.data
-        g.user.header_image_url = form.header_image_url.data
+        g.username = form.username.data
+        g.email = form.email.data
+        g.image_url = form.image_url.data
+        g.location = form.location.data
+        g.bio = form.bio.data
+        g.header_image_url = form.header_image_url.data
 
-
+        user = User.authenticate(g.user.username, form.password.data)
+        if not user:
+            flash("Please enter correct user password", "danger")
+            return redirect('/users/profile')
 
         db.session.commit()
         return redirect(f"/users/{g.user.id}")
-    
+
+
     return render_template('users/edit.html', form=form)
+
+
+# @app.route('/users/profile', methods=["GET", "POST"])
+# def profile():
+#     """Update profile for current user."""
+
+#     if not g.user:
+#         flash("Access unauthorized.", "danger")
+#         return redirect("/")
+
+#     form = UserEditForm()
+
+#     if form.validate_on_submit():
+        # username = form.username.data
+        # email = form.email.data
+        # image_url = form.image_url.data
+        # location = form.location.data
+        # bio = form.bio.data
+        # header_image_url = form.header_image_url.data
+
+#         user = User.authenticate(g.user.username, form.password.data)
+#         if not user:
+#             flash("Please enter correct user password", "danger")
+#             return redirect('/users/profile')
+
+#         g.user.username = username
+#         g.user.email = email
+#         g.user.image_url = image_url
+#         g.user.location = location
+#         g.user.bio = bio
+#         g.user.header_image_url = header_image_url
+
+#         db.session.commit()
+#         return redirect(f"/users/{g.user.id}")
+
+#     if form.username.data = g.user.username
+#     form.email.data = g.user.email
+#     form.image_url.data = g.user.image_url
+#     form.bio.data = g.user.bio
+#     form.header_image_url.data = g.user.header_image_url
+
+#     return render_template('users/edit.html', form=form)
 
 
 @app.route('/users/delete', methods=["POST"])
@@ -320,8 +377,12 @@ def homepage():
     """
 
     if g.user:
+
+        following_ids = [user.id for user in g.user.following] + [g.user.id]
+
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(following_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
