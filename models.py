@@ -63,11 +63,13 @@ class User(db.Model):
     )
 
     bio = db.Column(
-        db.Text
+        db.Text,
+        default=""
     )
 
     location = db.Column(
-        db.Text
+        db.Text,
+        default="Unknown"
     )
 
     password = db.Column(

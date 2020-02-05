@@ -117,7 +117,7 @@ def logout():
         flash("Access unauthorized.", "danger")
         return redirect("/")
     
-    flash(f"{g.user} has successfully logged out.", "success")
+    flash(f"{g.user.username} has successfully logged out.", "success")
     do_logout()
 
     return redirect('/login')
@@ -231,6 +231,8 @@ def profile():
         g.user.location = form.location.data
         g.user.bio = form.bio.data
         g.user.header_image_url = form.header_image_url.data
+
+
 
         db.session.commit()
         return redirect(f"/users/{g.user.id}")
