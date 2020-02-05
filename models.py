@@ -35,41 +35,44 @@ class User(db.Model):
     id = db.Column(
         db.Integer,
         primary_key=True,
+        autoincrement=True
     )
 
     email = db.Column(
         db.Text,
         nullable=False,
-        unique=True,
+        unique=True
     )
 
     username = db.Column(
         db.Text,
         nullable=False,
-        unique=True,
+        unique=True
     )
 
     image_url = db.Column(
         db.Text,
-        default="/static/images/default-pic.png",
+        nullable=False,
+        default="/static/images/default-pic.png"
     )
 
     header_image_url = db.Column(
         db.Text,
+        nullable=False,
         default="/static/images/warbler-hero.jpg"
     )
 
     bio = db.Column(
-        db.Text,
+        db.Text
     )
 
     location = db.Column(
-        db.Text,
+        db.Text
     )
 
     password = db.Column(
         db.Text,
-        nullable=False,
+        nullable=False
     )
 
     messages = db.relationship('Message')
@@ -98,7 +101,7 @@ class User(db.Model):
         return len(found_user_list) == 1
 
     def is_following(self, other_user):
-        """Is this user following `other_use`?"""
+        """Is this user following `other_user`?"""
 
         found_user_list = [user for user in self.following if user == other_user]
         return len(found_user_list) == 1
@@ -151,23 +154,24 @@ class Message(db.Model):
     id = db.Column(
         db.Integer,
         primary_key=True,
+        autoincrement=True
     )
 
     text = db.Column(
         db.String(140),
-        nullable=False,
+        nullable=False
     )
 
     timestamp = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.utcnow(),
+        default=datetime.utcnow()
     )
 
     user_id = db.Column(
         db.Integer,
-        db.ForeignKey('users.id', ondelete='CASCADE'),
-        nullable=False,
+        db.ForeignKey('users.id', ondelete='cascade'),
+        nullable=False
     )
 
     user = db.relationship('User')
