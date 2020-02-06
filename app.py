@@ -192,6 +192,22 @@ def users_followers(user_id):
                            user=user, current_url=current_url)
 
 
+@app.route('/users/<int:user_id>/messages-liked')
+def users_liked_messages(user_id):
+    """Show list of messages liked by this user."""
+
+    current_url = f'/users/{user_id}/messages-liked'
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+    
+    return render_template('users/liked-messages.html',
+                           user=user, current_url=current_url)
+
+
 @app.route('/users/follow/<int:follow_id>', methods=['POST'])
 def add_follow(follow_id):
     """Add a follow for the currently-logged-in user."""
@@ -333,10 +349,12 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
+    current_url = '/'
 
     if g.user:
 
-        following_ids = [user.id for user in g.user.following] + [g.user.id]
+        following_ids = {user.id for user in g.user.following}
+        following_ids.update({g.user.id})
 
         messages = (Message
                     .query
@@ -345,11 +363,34 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages)
+        return render_template('home.html', messages=messages, current_url=current_url)
 
     else:
         return render_template('home-anon.html')
 
+
+##############################################################################
+# Like Routes 
+
+
+@app.route('/messages/<int:msg_id>/toggle-like', methods=["POST"])
+def like_message(msg_id):
+
+    current_url = request.form['current_url']
+    liked_msg_ids = {msg.id for msg in g.user.messages_liked}
+
+    if msg_id in liked_msg_ids:
+        # way to issue one delete without two queries
+        like = Like.query.filter_by(user_id=g.user.id, msg_id=msg_id).first()
+        db.session.delete(like)
+
+    else:
+        like = Like(user_id=g.user.id, msg_id=msg_id)
+        db.session.add(like)
+
+    db.session.commit()
+
+    return redirect(current_url)
 
 ##############################################################################
 # Turn off all caching in Flask
@@ -368,24 +409,3 @@ def add_header(req):
     req.headers['Cache-Control'] = 'public, max-age=0'
     return req
 
-##############################################################################
-# Like Routes 
-
-
-@app.route('/messages/<int:msg_id>/toggle-like', methods=["POST"])
-def like_message(msg_id):
-
-    liked_msg_ids = [msg.id for msg in g.user.messages_liked]
-
-    if msg_id in liked_msg_ids:
-        like = Like.query.filter_by(user_id=g.user.id, msg_id=msg_id).first()
-        db.session.delete(like)
-
-    else:
-        like = Like(user_id=g.user.id, msg_id=msg_id)
-        db.session.add(like)
-
-    db.session.commit()
-
-
-    return redirect('/')
