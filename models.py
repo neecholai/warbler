@@ -99,13 +99,15 @@ class User(db.Model):
     def is_followed_by(self, other_user):
         """Is this user followed by `other_user`?"""
 
-        found_user_list = [user for user in self.followers if user == other_user]
+        found_user_list = [
+            user for user in self.followers if user == other_user]
         return len(found_user_list) == 1
 
     def is_following(self, other_user):
         """Is this user following `other_user`?"""
 
-        found_user_list = [user for user in self.following if user == other_user]
+        found_user_list = [
+            user for user in self.following if user == other_user]
         return len(found_user_list) == 1
 
     @classmethod
@@ -178,6 +180,9 @@ class Message(db.Model):
 
     user = db.relationship('User')
 
+    users_liked = db.relationship('User',
+                                  secondary="likes", backref="messages_liked")
+
 
 def connect_db(app):
     """Connect this database to provided Flask app.
@@ -187,3 +192,21 @@ def connect_db(app):
 
     db.app = app
     db.init_app(app)
+
+
+class Like(db.Model):
+    """An individual message ("warble")."""
+
+    __tablename__ = 'likes'
+
+    msg_id = db.Column(
+        db.Integer,
+        db.ForeignKey('messages.id'),
+        primary_key=True
+    )
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id'),
+        primary_key=True
+    )

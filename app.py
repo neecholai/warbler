@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Like
 
 CURR_USER_KEY = "curr_user"
 
@@ -233,6 +233,7 @@ def profile():
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
+
     form = UserEditForm(obj=g.user)
 
     if form.validate_on_submit():
@@ -251,50 +252,7 @@ def profile():
         db.session.commit()
         return redirect(f"/users/{g.user.id}")
 
-
     return render_template('users/edit.html', form=form)
-
-
-# @app.route('/users/profile', methods=["GET", "POST"])
-# def profile():
-#     """Update profile for current user."""
-
-#     if not g.user:
-#         flash("Access unauthorized.", "danger")
-#         return redirect("/")
-
-#     form = UserEditForm()
-
-#     if form.validate_on_submit():
-        # username = form.username.data
-        # email = form.email.data
-        # image_url = form.image_url.data
-        # location = form.location.data
-        # bio = form.bio.data
-        # header_image_url = form.header_image_url.data
-
-#         user = User.authenticate(g.user.username, form.password.data)
-#         if not user:
-#             flash("Please enter correct user password", "danger")
-#             return redirect('/users/profile')
-
-#         g.user.username = username
-#         g.user.email = email
-#         g.user.image_url = image_url
-#         g.user.location = location
-#         g.user.bio = bio
-#         g.user.header_image_url = header_image_url
-
-#         db.session.commit()
-#         return redirect(f"/users/{g.user.id}")
-
-#     if form.username.data = g.user.username
-#     form.email.data = g.user.email
-#     form.image_url.data = g.user.image_url
-#     form.bio.data = g.user.bio
-#     form.header_image_url.data = g.user.header_image_url
-
-#     return render_template('users/edit.html', form=form)
 
 
 @app.route('/users/delete', methods=["POST"])
@@ -409,3 +367,25 @@ def add_header(req):
     req.headers["Expires"] = "0"
     req.headers['Cache-Control'] = 'public, max-age=0'
     return req
+
+##############################################################################
+# Like Routes 
+
+
+@app.route('/messages/<int:msg_id>/toggle-like', methods=["POST"])
+def like_message(msg_id):
+
+    liked_msg_ids = [msg.id for msg in g.user.messages_liked]
+
+    if msg_id in liked_msg_ids:
+        like = Like.query.filter_by(user_id=g.user.id, msg_id=msg_id).first()
+        db.session.delete(like)
+
+    else:
+        like = Like(user_id=g.user.id, msg_id=msg_id)
+        db.session.add(like)
+
+    db.session.commit()
+
+
+    return redirect('/')
