@@ -29,8 +29,8 @@
 
     <div class="modal fade" id="message-modal-{{message.id}}" tabindex="-1" role="dialog">
       <div class="modal-dialog" role="document" style="margin-top: 10%">
-        <div class="modal-content" style="display: inline">
-          <div class="row justify-content-center" style="display: inline">
+        <div class="modal-content">
+          <div class="row justify-content-center">
             <ul class="list-group no-hover">
               <li class="list-group-item">
                 <a href="{{ url_for('users_show', user_id=message.user.id) }}">

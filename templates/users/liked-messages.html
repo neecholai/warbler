@@ -5,8 +5,8 @@
 
     {% for message in user.messages_liked %}
 
-      <li class="list-group-item">
-        <a href="/messages/{{ message.id }}" class="message-link">
+    <li class="list-group-item">
+      <a href="/messages/{{ message.id }}" class="message-link">
 
         <a href="/users/{{ user.id }}">
           <img src="{{ message.user.image_url }}" alt="user image" class="timeline-image">
@@ -16,14 +16,21 @@
           <a href="/users/{{ user.id }}">@{{ message.user.username }}</a>
           <span class="text-muted">{{ message.timestamp.strftime('%d %B %Y') }}</span>
           <p>{{ message.text }}</p>
-          {% if message in g.user.messages_liked %}
+          <!-- {% if message in g.user.messages_liked %}
           <i class="fas fa-heart" id="{{message.id}}"></i> <span class="like-count">{{ message.users_liked | length }}</span>
           {% else %}
           <i class="far fa-heart" id="{{message.id}}"></i> <span class="like-count">{{ message.users_liked | length }}</span>
+          {% endif %} -->
+          {% if message in g.user.messages_liked %}
+          <i class="fas fa-heart message-{{message.id}}" id="{{message.id}}"></i>
+          <span class="modal-like-count-{{message.id}}">{{ message.users_liked | length }}</span>
+          {% else %}
+          <i class="far fa-heart message-{{message.id}}" id="{{message.id}}"></i>
+          <span class="modal-like-count-{{message.id}}">{{ message.users_liked | length }}</span>
           {% endif %}
         </div>
         <input type="text" hidden name="current_url" value={{current_url}}>
-      </li>
+    </li>
 
     {% endfor %}
 
