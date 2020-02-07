@@ -51,23 +51,100 @@ class MessageViewTestCase(TestCase):
 
         db.session.commit()
 
+        testmessage = Message(text="test text for message",
+                                   user_id=self.testuser.id)
+
+        db.session.add(testmessage)
+        db.session.commit()
+
+        self.testmessage = Message.query.filter_by(text="test text for message").first()
+
     def test_add_message(self):
         """Can user add a message?"""
-
-        # Since we need to change the session to mimic logging in,
-        # we need to use the changing-session trick:
 
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
 
-            # Now, that session setting is saved, so we can have
-            # the rest of ours test
+            resp = c.post("/messages/new", data={"text": "Hello"}, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+            msg = Message.query.filter_by(text="Hello").first()
 
-            resp = c.post("/messages/new", data={"text": "Hello"})
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Hello", html)
 
-            # Make sure it redirects
-            self.assertEqual(resp.status_code, 302)
+    def test_delete_message(self):
+        """Can use delete a message?"""
 
-            msg = Message.query.one()
-            self.assertEqual(msg.text, "Hello")
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+            
+            resp = c.post(f'/messages/{self.testmessage.id}/delete', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+            msg = Message.query.all()
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn(f'@{self.testuser.username}', html)
+            self.assertEqual(len(msg), 0)
+
+    def test_logged_out_add_message(self):
+        """Can't add message when logged out"""
+
+        with self.client as c:
+            resp = c.post("/messages/new", data={"text": "Hello"}, follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Access unauthorized.", html)
+
+    def test_logged_out_delete_message(self):
+        """Can't delete message when logged out"""
+
+        with self.client as c:
+            resp = c.post(f"/messages/{self.testuser.id}/delete", follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Access unauthorized.", html)
+            
+    def test_logged_out_follow_user(self):
+        """Can't follow a user when logged out"""
+
+        with self.client as c:
+            resp = c.post(f"/users/follow/{self.testuser.id}", follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Access unauthorized.", html)
+    
+    def test_add_message_different_user(self):
+        """Can't add message when not the creator"""
+
+        testuser2 = User.signup(username="testuser2",
+                                    email="test2@test2.com",
+                                    password="testuser2",
+                                    image_url=None)
+
+        db.session.commit()
+
+        testmessage2 = Message(text="test message 2",
+                               user_id=testuser2.id)
+        db.session.add(testmessage2)
+        db.session.commit()
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+            msg2 = Message.query.filter_by(text="test message 2").first()
+            
+            resp = c.post(f"/messages/{msg2.id}/delete", follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Access unauthorized.", html)
+
+    
+
+        

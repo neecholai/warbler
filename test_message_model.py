@@ -2,7 +2,7 @@
 
 # run these tests like:
 #
-#    python -m unittest test_user_model.py
+#    python -m unittest test_message_model.py
 
 from app import app
 import os
@@ -27,4 +27,40 @@ db.create_all()
 # and create fresh new clean test data
 
 
-class UserModelTestCase(TestCase):
+class MessageModelTestCase(TestCase):
+    """Test models for messages."""
+
+    def setUp(self):
+        """Create test client, add sample data."""
+
+        User.query.delete()
+        Message.query.delete()
+
+        u1 = User(
+            email="test@test.com",
+            username="testuser",
+            password="HASHED_PASSWORD"
+        )
+
+        db.session.add(u1)
+        db.session.commit()
+
+        m1 = Message(
+            text="test text for message",
+            user_id=u1.id
+        )
+
+        db.session.add(m1)
+        db.session.commit()
+
+        self.u1 = User.query.get(u1.id)
+        self.m1 = Message.query.get(m1.id)
+        self.client = app.test_client()
+
+    def test_message_model(self):
+        """Does basic model work?"""
+
+        # User should have one message
+        self.assertEqual(len(self.u1.messages), 1)
+        self.assertEqual(self.m1.user_id, self.u1.id)
+        self.assertEqual(f'{self.m1}', f"<Message #{self.m1.id}, User ID:{self.m1.user_id}, Text:{self.m1.text} @ {self.m1.timestamp}>")

@@ -34,7 +34,7 @@ def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
 
     if CURR_USER_KEY in session:
-        g.user = User.query.get(session[CURR_USER_KEY])
+        g.user = User.query.get_or_404(session[CURR_USER_KEY])
 
     else:
         g.user = None
@@ -52,6 +52,11 @@ def do_logout():
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
+@app.errorhandler(404)
+def page_not_found(e):
+    # custom page for 404 error
+
+    return render_template('404.html'), 404
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
@@ -235,7 +240,7 @@ def stop_following(follow_id):
 
     current_url = request.form.get('current_url')
 
-    followed_user = User.query.get(follow_id)
+    followed_user = User.query.get_or_404(follow_id)
     g.user.following.remove(followed_user)
     db.session.commit()
 
@@ -317,7 +322,7 @@ def messages_add():
 def messages_show(message_id):
     """Show a message."""
 
-    msg = Message.query.get(message_id)
+    msg = Message.query.get_or_404(message_id)
     return render_template('messages/show.html', message=msg)
 
 
@@ -329,9 +334,12 @@ def messages_destroy(message_id):
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    # make sure message is user's message
+    msg = Message.query.get_or_404(message_id)
 
-    msg = Message.query.get(message_id)
+    if msg.user_id != g.user.id:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
     db.session.delete(msg)
     db.session.commit()
 

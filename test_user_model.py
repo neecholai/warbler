@@ -28,14 +28,14 @@ db.create_all()
 
 
 class UserModelTestCase(TestCase):
-    """Test views for messages."""
+    """Test models for users."""
 
     def setUp(self):
         """Create test client, add sample data."""
 
         User.query.delete()
-        Message.query.delete()
         Follows.query.delete()
+        Message.query.delete()
 
         u1 = User(
             email="test@test.com",
