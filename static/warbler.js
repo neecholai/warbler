@@ -62,4 +62,5 @@ $(function(){
         resp = await axios.post(`/users/follow/${user_id}`)
         return resp.data
     }
+    
 })
