@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template, request, flash, redirect, session, g
+from flask import Flask, render_template, request, flash, redirect, jsonify, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
@@ -34,7 +34,7 @@ def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
 
     if CURR_USER_KEY in session:
-        g.user = User.query.get_or_404(session[CURR_USER_KEY])
+        g.user = User.query.get(session[CURR_USER_KEY])
 
     else:
         g.user = None
@@ -213,38 +213,34 @@ def users_liked_messages(user_id):
                            user=user, current_url=current_url)
 
 
-@app.route('/users/follow/<int:follow_id>', methods=['POST'])
-def add_follow(follow_id):
+@app.route('/users/follow/<int:followed_user_id>', methods=['POST'])
+def add_follow(followed_user_id):
     """Add a follow for the currently-logged-in user."""
 
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    current_url = request.form.get('current_url')
-
-    followed_user = User.query.get_or_404(follow_id)
+    followed_user = User.query.get_or_404(followed_user_id)
     g.user.following.append(followed_user)
     db.session.commit()
 
-    return redirect(current_url)
+    return jsonify({"id": followed_user_id, "action": "followed"})
 
 
-@app.route('/users/stop-following/<int:follow_id>', methods=['POST'])
-def stop_following(follow_id):
+@app.route('/users/stop-following/<int:followed_user_id>', methods=['POST'])
+def stop_following(followed_user_id):
     """Have currently-logged-in-user stop following this user."""
 
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    current_url = request.form.get('current_url')
-
-    followed_user = User.query.get_or_404(follow_id)
+    followed_user = User.query.get_or_404(followed_user_id)
     g.user.following.remove(followed_user)
     db.session.commit()
 
-    return redirect(current_url)
+    return jsonify({"id": followed_user_id, "action": "unfollowed"})
 
 
 @app.route('/users/profile', methods=["GET", "POST"])
@@ -384,21 +380,22 @@ def homepage():
 @app.route('/messages/<int:msg_id>/toggle-like', methods=["POST"])
 def like_message(msg_id):
 
-    current_url = request.form['current_url']
     liked_msg_ids = {msg.id for msg in g.user.messages_liked}
 
     if msg_id in liked_msg_ids:
         # way to issue one delete without two queries
         like = Like.query.filter_by(user_id=g.user.id, msg_id=msg_id).first()
         db.session.delete(like)
+        action = "unlike"
 
     else:
         like = Like(user_id=g.user.id, msg_id=msg_id)
         db.session.add(like)
+        action = "like"
 
     db.session.commit()
 
-    return redirect(current_url)
+    return jsonify({"msg_id": msg_id, "action": action})
 
 ##############################################################################
 # Turn off all caching in Flask
@@ -417,3 +414,6 @@ def add_header(req):
     req.headers['Cache-Control'] = 'public, max-age=0'
     return req
 
+
+
+# 

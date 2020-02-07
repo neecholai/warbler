@@ -542,30 +542,28 @@ p.card-bio {
 
 .fa-heart {
   size: 0.1em;
-  border-radius: 3em;
+  border-radius: 10em;
 
   color: red;
   background-color: white;
   z-index: 20;
   position: relative;
 }
-
+/* 
 .like-btn {
   border: none;
   border-radius: 3em;
   z-index: 15;
   position: relative;
-}
+} */
 
-.fa-heart:hover {
+/* .fa-heart:hover {
   background-color: red;
   opacity: 10%;
-}
+} */
 
-.fa-heart:hover .like-btn
+/* .fa-heart:hover .like-btn
 .fa-heart:hover ~ .like-btn {
   background-color: red;
   opacity: 10%;
-}
-
-
+} */

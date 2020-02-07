@@ -4,7 +4,6 @@
   <ul class="list-group" id="messages">
 
     {% for message in messages %}
-    <form action="/messages/{{message.id}}/toggle-like" method="POST">
 
       <li class="list-group-item">
         <a href="/messages/{{ message.id }}" class="message-link" />
@@ -18,14 +17,13 @@
           <span class="text-muted">{{ message.timestamp.strftime('%d %B %Y') }}</span>
           <p>{{ message.text }}</p>
           {% if message in g.user.messages_liked %}
-          <button class='like-btn'><i class="fas fa-heart"></i></button>
+          <i class="fas fa-heart" id="{{message.id}}"></i> <span class="like-count">{{ message.users_liked | length }}</span class="like-count">
           {% else %}
-          <button class='like-btn'><i class="far fa-heart"></i></button>
+          <i class="far fa-heart" id="{{message.id}}"></i> <span class="like-count">{{ message.users_liked | length }}</span class="like-count">
           {% endif %}
         </div>
         <input type="text" hidden name="current_url" value={{current_url}}>
       </li>
-    </form>
 
     {% endfor %}
 

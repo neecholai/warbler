@@ -39,9 +39,7 @@
   <div class="col-lg-6 col-md-8 col-sm-12">
     <ul class="list-group" id="messages">
       {% for msg in messages %}
-      <form action="/messages/{{msg.id}}/toggle-like" method="POST">
         <li class="list-group-item">
-          <a href="/messages/{{ msg.id  }}" class="message-link">
             <a href="/users/{{ msg.user.id }}">
               <img src="{{ msg.user.image_url }}" alt="" class="timeline-image">
             </a>
@@ -50,14 +48,13 @@
               <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
               <p>{{ msg.text }}</p>
               {% if msg in g.user.messages_liked %}
-              <button class='like-btn'><i class="fas fa-heart"></i></button>
+              <i class="fas fa-heart" id="{{msg.id}}"></i> <span class="like-count">{{ msg.users_liked | length }}</span class="like-count">
               {% else %}
-              <button class='like-btn'><i class="far fa-heart"></i></button>
+              <i class="far fa-heart" id="{{msg.id}}"></i> <span class="like-count">{{ msg.users_liked | length }}</span class="like-count">
               {% endif %}
             </div>
             <input type="text" hidden name="current_url" value={{current_url}}>
         </li>
-      </form>
       {% endfor %}
     </ul>
   </div>
