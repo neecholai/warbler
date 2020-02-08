@@ -135,7 +135,6 @@ def logout():
 @app.route('/users')
 def list_users():
     """Page with listing of users.
-
     Can take a 'q' param in querystring to search by that username.
     """
 
@@ -149,6 +148,7 @@ def list_users():
 
     return render_template('users/index.html',
                            users=users, current_url=current_url)
+
 
 
 @app.route('/users/<int:user_id>')
@@ -396,7 +396,7 @@ def like_message(msg_id):
 
     db.session.commit()
 
-    return jsonify({"msg_id": msg_id, "action": action})
+    return jsonify({"msg_id": msg_id, "action": action, "g_user_username": g.user.username})
 
 ##############################################################################
 # Turn off all caching in Flask

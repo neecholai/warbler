@@ -196,6 +196,10 @@ nav + .container {
   margin-left: 10px;
 }
 
+.modal .message-area {
+  width: 100%;
+}
+
 #warbler-hero {
   height: 360px;
   margin-top: -16px;
@@ -296,8 +300,14 @@ nav + .container {
   word-wrap: break-word;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .full-width .user-stats .stat {
+    display: none;
+  }
+}
+
+@media (max-width: 546px) {
+  .container-fluid .navbar-nav .navbar-form {
     display: none;
   }
 }
@@ -549,21 +559,15 @@ p.card-bio {
   z-index: 20;
   position: relative;
 }
-/* 
-.like-btn {
-  border: none;
-  border-radius: 3em;
-  z-index: 15;
-  position: relative;
-} */
 
-/* .fa-heart:hover {
-  background-color: red;
-  opacity: 10%;
-} */
+.modal-dialog {
+  margin-top: 10%;
+}
 
-/* .fa-heart:hover .like-btn
-.fa-heart:hover ~ .like-btn {
-  background-color: red;
-  opacity: 10%;
-} */
+.modal-dialog .row {
+  display: inline;
+}
+
+textarea {
+  resize: none;
+}
