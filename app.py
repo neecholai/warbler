@@ -312,7 +312,7 @@ def delete_user():
 
 @app.route('/messages/new', methods=["POST"])
 def messages_add():
-    msg = Message(text=request.json.text)
+    msg = Message(text=request.json['text'])
     g.user.messages.append(msg)
     db.session.commit()
 
@@ -373,6 +373,8 @@ def homepage():
                     .limit(100)
                     .all())
 
+        print("GOT HERE")
+
         return render_template('home.html', messages=messages, current_url=current_url)
 
     else:
@@ -402,6 +404,7 @@ def like_message(msg_id):
     db.session.commit()
 
     return jsonify({"msg_id": msg_id, "action": action, "g_user_username": g.user.username})
+
 
 @app.route('/messages/<int:msg_id>/toggle-retweet', methods=["POST"])
 def retweet_message(msg_id):

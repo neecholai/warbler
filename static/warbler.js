@@ -97,11 +97,11 @@ $(function () {
 
     })
 
-    $('#new-message-modal').on("click", async function(){
-        let text = $('.new-message-modal-body').text()
-        console.log(text)
-        let resp = await axios.post('/messages/new', json={text})
-        console.log(resp)
+    $('#post-warble').on("click", async function(){
+        let text = $('.new-message-modal-body').val();
+        let resp = await axios.post('/messages/new', data={text})
+        window.location = '/';
+        return resp;
     })
 
     async function toggleLike(msg_id) {
