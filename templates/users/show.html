@@ -8,13 +8,12 @@
     <li class="list-group-item">
       <a class="message-link" data-toggle="modal"
         data-target="#message-modal-{{message.id}}"></a>
-
-        <a href="/users/{{ user.id }}">
-          <img src="{{ user.image_url }}" alt="user image" class="timeline-image">
-        </a>
-
-        <div class="message-area">
-          <a href="/users/{{ user.id }}">@{{ user.username }}</a>
+        {% if message.user_id != user.id %}
+          <a href="/users/{{ message.user_id }}">
+            <img src="{{ message.user.image_url }}" alt="user image" class="timeline-image">
+          </a>
+          <div class="message-area">
+          <a href="/users/{{ message.user_id }}">@{{ message.user.username }}</a>
           <span class="text-muted">{{ message.timestamp.strftime('%d %B %Y') }}</span>
           <p>{{ message.text }}</p>
           {% if message in g.user.messages_liked %}
@@ -24,7 +23,42 @@
           <i class="far fa-heart message-{{message.id}}" id="{{message.id}}"></i> 
           <span class="like-count-{{message.id}}">{{ message.users_liked | length }}</span>
           {% endif %}
-        </div>
+          {% if message in g.user.messages_retweeted %}
+          <i class="fas fa-retweet retweet-green retweet-{{message.id}}" id="{{message.id}}"></i>
+          <span class="retweet-count-{{message.id}}">{{ message.users_retweeted | length }}</span>
+          {% else %}
+          <i class="fas fa-retweet retweet-{{message.id}}" id="{{message.id}}"></i>
+          <span class="retweet-count-{{message.id}}">{{ message.users_retweeted | length }}</span>
+          </div>
+          {% endif %}
+
+        {% else %}
+
+          <a href="/users/{{ user.id }}">
+            <img src="{{ user.image_url }}" alt="user image" class="timeline-image">
+          </a>
+          
+          <div class="message-area">
+            <a href="/users/{{ user.id }}">@{{ user.username }}</a>
+            <span class="text-muted">{{ message.timestamp.strftime('%d %B %Y') }}</span>
+            <p>{{ message.text }}</p>
+            {% if message in g.user.messages_liked %}
+            <i class="fas fa-heart message-{{message.id}}" id="{{message.id}}"></i>
+            <span class="like-count-{{message.id}}">{{ message.users_liked | length }}</span>
+            {% else %}
+            <i class="far fa-heart message-{{message.id}}" id="{{message.id}}"></i> 
+            <span class="like-count-{{message.id}}">{{ message.users_liked | length }}</span>
+            {% endif %}
+            {% if message in g.user.messages_retweeted %}
+            <i class="fas fa-retweet retweet-green retweet-{{message.id}}" id="{{message.id}}"></i>
+            <span class="retweet-count-{{message.id}}">{{ message.users_retweeted | length }}</span>
+            {% else %}
+            <i class="fas fa-retweet retweet-{{message.id}}" id="{{message.id}}"></i>
+            <span class="retweet-count-{{message.id}}">{{ message.users_retweeted | length }}</span>
+            </div>
+            {% endif %}
+            </div>
+        {% endif %}
     </li>
 
     <div class="modal fade" id="message-modal-{{message.id}}" tabindex="-1" role="dialog">
@@ -56,16 +90,30 @@
                     <i class="far fa-heart message-{{message.id}}" id="{{message.id}}"></i> 
                     <span class="modal-like-count-{{message.id}}">{{ message.users_liked | length }}</span>
                     {% endif %}
+                    {% if message in g.user.messages_retweeted %}
+                    <i class="fas fa-retweet retweet-green retweet-{{message.id}}" id="{{message.id}}"></i>
+                    <span class="modal-retweet-count-{{message.id}}">{{ message.users_retweeted | length }}</span>
+                    {% else %}
+                    <i class="fas fa-retweet retweet-{{message.id}}" id="{{message.id}}"></i>
+                    <span class="modal-retweet-count-{{message.id}}">{{ message.users_retweeted | length }}</span>
+                    {% endif %}
                     <button class="btn btn-outline-danger" style="float: right">Delete</button>
                   </form>
                   {% else %}
-                  {% if message in g.user.messages_liked %}
-                  <i class="fas fa-heart message-{{message.id}}" id="{{message.id}}"></i> 
-                  <span class="modal-like-count-{{message.id}}">{{ message.users_liked | length }}</span>
-                  {% else %}
-                  <i class="far fa-heart message-{{message.id}}" id="{{message.id}}"></i> 
-                  <span class="modal-like-count-{{message.id}}">{{ message.users_liked | length }}</span>
-                  {% endif %}
+                    {% if message in g.user.messages_liked %}
+                    <i class="fas fa-heart message-{{message.id}}" id="{{message.id}}"></i> 
+                    <span class="modal-like-count-{{message.id}}">{{ message.users_liked | length }}</span>
+                    {% else %}
+                    <i class="far fa-heart message-{{message.id}}" id="{{message.id}}"></i> 
+                    <span class="modal-like-count-{{message.id}}">{{ message.users_liked | length }}</span>
+                    {% endif %}
+                    {% if message in g.user.messages_retweeted %}
+                    <i class="fas fa-retweet retweet-green retweet-{{message.id}}" id="{{message.id}}"></i>
+                    <span class="modal-retweet-count-{{message.id}}">{{ message.users_retweeted | length }}</span>
+                    {% else %}
+                    <i class="fas fa-retweet retweet-{{message.id}}" id="{{message.id}}"></i>
+                    <span class="modal-retweet-count-{{message.id}}">{{ message.users_retweeted | length }}</span>
+                    {% endif %}
                   {% endif %}
                 </div>
               </li>

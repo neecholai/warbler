@@ -63,8 +63,54 @@ $(function () {
 
     })
 
+    $('.fa-retweet').on("click", async function (e) {
+        let $retweet = $(e.target);
+        let msg_id = +e.target.id;
+        let resp = await toggleRetweet(msg_id);
+        let allRetweets = $retweet.closest('#messages').find(`.retweet-${msg_id}`);
+        let postLikes = $retweet.closest("#messages").find(`.retweet-count-${msg_id}`);
+        let postLikesModal = $retweet.closest("#messages").find(`.modal-retweet-count-${msg_id}`);
+        let userLikes = $retweet.closest('#all-the-way-up').find('#user-retweet-count');
+        let g_username = resp.g_user_username;
+        let page_username = $retweet.closest("#all-the-way-up").find("#sidebar-username").text().slice(1)
+
+        if (resp.msg_id === msg_id) {
+            if ($retweet.hasClass('retweet-green')) {
+                let updatedPostLikes = +postLikes.text() - 1;
+                postLikes.text(updatedPostLikes);
+                postLikesModal.text(updatedPostLikes);
+                if (g_username === page_username) {
+                    let updatedUserLikes = +userLikes.text() - 1;
+                    userLikes.text(updatedUserLikes);
+                }
+            } else {
+                let updatedPostLikes = +postLikes.text() + 1;
+                postLikes.text(updatedPostLikes);
+                postLikesModal.text(updatedPostLikes);
+                if (g_username === page_username) {
+                    let updatedUserLikes = +userLikes.text() + 1;
+                    userLikes.text(updatedUserLikes);
+                }
+            }
+            allRetweets.toggleClass('retweet-green');
+        }
+
+    })
+
+    $('#new-message-modal').on("click", async function(){
+        let text = $('.new-message-modal-body').text()
+        console.log(text)
+        let resp = await axios.post('/messages/new', json={text})
+        console.log(resp)
+    })
+
     async function toggleLike(msg_id) {
         let resp = await axios.post(`/messages/${msg_id}/toggle-like`);
+        return resp.data;
+    }
+
+    async function toggleRetweet(msg_id) {
+        let resp = await axios.post(`/messages/${msg_id}/toggle-retweet`);
         return resp.data;
     }
 

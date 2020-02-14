@@ -35,6 +35,12 @@
                 <a href="/users/{{user.id}}/messages-liked" id='user-like-count' >{{ user.messages_liked | length }}</a>
               </h4>
             </li>
+            <li class="stat">
+              <p class="small">Retweets</p>
+              <h4>
+                <a href="/users/{{user.id}}/messages-retweeted" id='user-retweet-count' >{{ user.messages_retweeted | length }}</a>
+              </h4>
+            </li>
             <div class="ml-auto">
               {% if g.user.id == user.id %}
               <a href="/users/profile" class="btn btn-outline-secondary">Edit Profile</a>

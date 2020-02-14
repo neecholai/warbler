@@ -3,9 +3,10 @@ import os
 from flask import Flask, render_template, request, flash, redirect, jsonify, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_
 
 from forms import UserAddForm, LoginForm, MessageForm, UserEditForm
-from models import db, connect_db, User, Message, Like
+from models import db, connect_db, User, Message, Like, Retweet
 
 CURR_USER_KEY = "curr_user"
 
@@ -158,11 +159,13 @@ def users_show(user_id):
     current_url = f'/users/{user_id}'
     user = User.query.get_or_404(user_id)
 
+    retweeted_msg_ids = {msg.id for msg in user.messages_retweeted}
+
     # snagging messages in order from the database;
     # user.messages won't be in order by default
     messages = (Message
                 .query
-                .filter(Message.user_id == user_id)
+                .filter(or_(Message.user_id == user_id, Message.id.in_(retweeted_msg_ids)))
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
@@ -211,6 +214,21 @@ def users_liked_messages(user_id):
     user = User.query.get_or_404(user_id)
     
     return render_template('users/liked-messages.html',
+                           user=user, current_url=current_url)
+
+@app.route('/users/<int:user_id>/messages-retweeted')
+def users_retweeted_messages(user_id):
+    """Show list of messages retweeted by this user."""
+
+    current_url = f'/users/{user_id}/messages-retweeted'
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+    
+    return render_template('users/retweeted-messages.html',
                            user=user, current_url=current_url)
 
 
@@ -292,27 +310,13 @@ def delete_user():
 ##############################################################################
 # Messages routes:
 
-@app.route('/messages/new', methods=["GET", "POST"])
+@app.route('/messages/new', methods=["POST"])
 def messages_add():
-    """Add a message:
+    msg = Message(text=request.json.text)
+    g.user.messages.append(msg)
+    db.session.commit()
 
-    Show form if GET. If valid, update message and redirect to user page.
-    """
-
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-
-    form = MessageForm()
-
-    if form.validate_on_submit():
-        msg = Message(text=form.text.data)
-        g.user.messages.append(msg)
-        db.session.commit()
-
-        return redirect(f"/users/{g.user.id}")
-
-    return render_template('messages/new.html', form=form)
+    return jsonify({"msg_id": msg.id, "g_user_username": g.user.username, "status": "added"})
 
 
 @app.route('/messages/<int:message_id>', methods=["GET"])
@@ -360,10 +364,11 @@ def homepage():
 
         following_ids = {user.id for user in g.user.following}
         following_ids.update({g.user.id})
+        retweeted_msg_ids = {msg.id for msg in g.user.messages_retweeted}
 
         messages = (Message
                     .query
-                    .filter(Message.user_id.in_(following_ids))
+                    .filter(or_(Message.user_id.in_(following_ids), Message.id.in_(retweeted_msg_ids)))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
@@ -398,6 +403,26 @@ def like_message(msg_id):
 
     return jsonify({"msg_id": msg_id, "action": action, "g_user_username": g.user.username})
 
+@app.route('/messages/<int:msg_id>/toggle-retweet', methods=["POST"])
+def retweet_message(msg_id):
+
+    retweeted_msg_ids = {msg.id for msg in g.user.messages_retweeted}
+
+    if msg_id in retweeted_msg_ids:
+        # way to issue one delete without two queries
+        retweet = Retweet.query.filter_by(user_id=g.user.id, msg_id=msg_id).first()
+        db.session.delete(retweet)
+        action = "unretweet"
+
+    else:
+        retweet = Retweet(user_id=g.user.id, msg_id=msg_id)
+        db.session.add(retweet)
+        action = "retweet"
+
+    db.session.commit()
+
+    return jsonify({"msg_id": msg_id, "action": action, "g_user_username": g.user.username})
+
 ##############################################################################
 # Turn off all caching in Flask
 #   (useful for dev; in production, this kind of stuff is typically
@@ -414,7 +439,3 @@ def add_header(req):
     req.headers["Expires"] = "0"
     req.headers['Cache-Control'] = 'public, max-age=0'
     return req
-
-
-
-# 

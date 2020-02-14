@@ -182,6 +182,8 @@ class Message(db.Model):
 
     users_liked = db.relationship('User',
                                   secondary="likes", backref="messages_liked")
+    
+    users_retweeted = db.relationship('User', secondary="retweets", backref="messages_retweeted")
      
     def __repr__(self):
         return f"<Message #{self.id}, User ID:{self.user_id}, Text:{self.text} @ {self.timestamp}>"
@@ -197,9 +199,26 @@ def connect_db(app):
 
 
 class Like(db.Model):
-    """An individual message ("warble")."""
+    """Join table between user and message as a like"""
 
     __tablename__ = 'likes'
+
+    msg_id = db.Column(
+        db.Integer,
+        db.ForeignKey('messages.id'),
+        primary_key=True
+    )
+
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id'),
+        primary_key=True
+    )
+
+class Retweet(db.Model):
+    """Join table between user and message as a retweet"""
+
+    __tablename__ = "retweets"
 
     msg_id = db.Column(
         db.Integer,

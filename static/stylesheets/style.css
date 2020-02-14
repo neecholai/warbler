@@ -571,3 +571,16 @@ p.card-bio {
 textarea {
   resize: none;
 }
+
+.fa-retweet {
+  size: 0.1em;
+  border-radius: 10em;
+
+
+  background-color: white;
+  z-index: 20;
+  position: relative;
+}
+.retweet-green{
+  color :rgb(0, 180, 0)
+}
