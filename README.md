@@ -37,5 +37,5 @@ In order to make requests to the backend, a user be registered and logged in to 
 
 ### Deployed 
 The staging api app is live on heroku at: 
-https://nicholaihanse-warbler.herokuapp.com
+https://warbler-nicholai.herokuapp.com/
 
