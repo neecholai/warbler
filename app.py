@@ -273,14 +273,15 @@ def profile():
     form = UserEditForm(obj=g.user)
 
     if form.validate_on_submit():
-        g.username = form.username.data
-        g.email = form.email.data
-        g.image_url = form.image_url.data
-        g.location = form.location.data
-        g.bio = form.bio.data
-        g.header_image_url = form.header_image_url.data
+        g.user.email = form.email.data
+        g.user.image_url = form.image_url.data
+        g.user.location = form.location.data
+        g.user.bio = form.bio.data
+        g.user.header_image_url = form.header_image_url.data
 
         user = User.authenticate(g.user.username, form.password.data)
+        g.user.username = form.username.data
+
         if not user:
             flash("Please enter correct user password", "danger")
             return redirect('/users/profile')

@@ -130,6 +130,25 @@ class User(db.Model):
         return user
 
     @classmethod
+    def update(cls, username, email, image_url, location, bio, header_image_url):
+        """Update user.
+
+        Updates user in the system
+        """
+
+        user = User(
+            username=username,
+            email=email,
+            image_url=image_url,
+            location=location,
+            bio=bio,
+            header_image_url=header_image_url
+        )
+
+        db.session.add(user)
+        return user
+
+    @classmethod
     def authenticate(cls, username, password):
         """Find user with `username` and `password`.
 
@@ -214,6 +233,7 @@ class Like(db.Model):
         db.ForeignKey('users.id'),
         primary_key=True
     )
+
 
 class Retweet(db.Model):
     """Join table between user and message as a retweet"""
