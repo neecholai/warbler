@@ -4,11 +4,20 @@
 
 This repo contains an app called Warbler (deployed on Heroku). 
 
+Warbler is a twitter clone. Warbler allows users to post bite-sized thoughts and find and follow other users. Users can share and like other contributers' 'warbles' and search contributers in the database to find new friends or people to follow.
+
 In order to make requests to the backend, a user be registered and logged in to receive a JWT for authentication.
 
-two apps, a create-react-app (deployed with Netlify) for the front-end and a Node API (deployed on Heroku) for the backend. We're using Netlify Identity for managing user information/authentication.
+## Technologies Used
 
-In order to make *any* requests to the backend, a header called "X-App-Data" must be sent to the server with a valid JWT signed from the create-react-app. What this is means is that you can not use Insomnia to test any routes without passing in a valid JWT. In development, the secret key is just the string "secret" so you can create your own token at JWT.io for testing purposes.
+- Javascript
+- Python
+- Flask
+- SQL 
+- SQL Alchemy
+- Jinja2
+- Bcrypt
+- WTForms
 
 ## Getting Started 
 
